@@ -19,7 +19,7 @@ export const CartItem = ({ item }) => {
         <h1 className="text-zinc-700 text-sm">{name}</h1>
         <span className="text-pink-400 text-sm">${price}</span>
       </div>
-      <CartButtons />
+      <CartButtons item={item} />
     </div>
   );
 };
