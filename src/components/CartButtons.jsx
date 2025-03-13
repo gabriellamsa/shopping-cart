@@ -1,7 +1,7 @@
 import { useCart } from "../context/CartContext";
 
 export const CartButtons = ({ item }) => {
-  const { addToCart } = useCart();
+  const { addToCart, removeFromCart } = useCart();
 
   return (
     <div className="w-max absolute right-5 top-5">
@@ -26,7 +26,10 @@ export const CartButtons = ({ item }) => {
               </p>
               <button className="border rounded-lg px-3">+</button>
             </div>
-            <button className="bg-pink-300 mx-auto mt-2 block rounded-md px-2 py-1 text-xs text-white hover:bg-pink-400">
+            <button
+              className="bg-pink-300 mx-auto mt-2 block rounded-md px-2 py-1 text-xs text-white hover:bg-pink-400"
+              onClick={() => removeFromCart(item)}
+            >
               Remove
             </button>
           </div>

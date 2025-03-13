@@ -22,8 +22,20 @@ export const CartProvider = ({ children }) => {
     });
   };
 
+  const removeFromCart = (item) => {
+    setAllItems((prevItems) => {
+      return prevItems.map((prevItem) => {
+        return prevItem.id === item.id
+          ? { ...prevItem, inCart: false, quantity: 1 }
+          : prevItem;
+      });
+    });
+  };
+
   return (
-    <CartContext.Provider value={{ allItems, setItems, addToCart }}>
+    <CartContext.Provider
+      value={{ allItems, setItems, addToCart, removeFromCart }}
+    >
       {children}
     </CartContext.Provider>
   );
