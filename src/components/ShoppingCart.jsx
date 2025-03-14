@@ -6,12 +6,18 @@ import { CartItem } from "./CartItem";
 export const ShoppingCart = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [cartItems, setCartItems] = useState([]);
+  const [totalPrice, setTotalPrice] = useState(0);
 
   const { allItems } = useCart();
 
   useEffect(() => {
     const inCartItems = allItems.filter((item) => item.inCart);
     setCartItems(inCartItems?.reverse());
+
+    const price = inCartItems.reduce((accumulator, item) => {
+      return (accumulator += item.price * item.quantity);
+    }, 0);
+    setTotalPrice(price);
   }, [allItems]);
 
   return (
@@ -44,7 +50,7 @@ export const ShoppingCart = () => {
         })}
       </div>
       <div className="w-full h-20 bg-white absolute bottom-0 left-0 z-10 grid place-items-center border rounded-lg">
-        <h1 className="text-lg text-gray-600">Total: $</h1>
+        <h1 className="text-lg text-gray-600">Total: {totalPrice}</h1>
         <button className="rounded-md bg-blue-300 px-2 text-white hover:bg-blue-400 transition-colors">
           Checkout
         </button>
