@@ -40,7 +40,7 @@ export const ShoppingCart = () => {
       </button>
       <div className="h-screen flex flex-col gap-y-3 overflow-y-scroll px-5 pb-24 pt-20">
         {cartItems?.map((item) => {
-          return <CartItem key={item.id} item={item} />;
+          return <CartItem key={item.id} item={item} fromCart={true} />;
         })}
       </div>
       <div className="w-full h-20 bg-white absolute bottom-0 left-0 z-10 grid place-items-center border rounded-lg">

@@ -1,10 +1,10 @@
 import { useCart } from "../context/CartContext";
 
-export const CartButtons = ({ item }) => {
+export const CartButtons = ({ item, fromCart }) => {
   const { addToCart, removeFromCart, updateQuantity } = useCart();
 
   return (
-    <div className="w-max absolute right-5 top-5">
+    <div className={`w-max absolute right-5 top-5 ${fromCart && "scale-90"}`}>
       <div className="space-x-3">
         {!item.inCart ? (
           <button

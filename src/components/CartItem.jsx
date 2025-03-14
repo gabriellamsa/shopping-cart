@@ -1,6 +1,6 @@
 import { CartButtons } from "./CartButtons";
 
-export const CartItem = ({ item }) => {
+export const CartItem = ({ item, fromCart }) => {
   const { id, name, imageUrl, price } = item;
 
   return (
@@ -13,13 +13,17 @@ export const CartItem = ({ item }) => {
         alt="Product Image"
         width={300}
         height={300}
-        className="group-hover:-translate-y-2 transition-all duration-500"
+        className={`${
+          !fromCart && "group-hover:-translate-y-2 transition-all"
+        } duration-500}`}
       />
-      <div className="text-center">
-        <h1 className="text-zinc-700 text-sm">{name}</h1>
-        <span className="text-pink-400 text-sm">${price}</span>
+      <div className="absolute bottom-5 left-5">
+        <h1 className={`text-zinc-700 ${fromCart && "text-sm"}`}>{name}</h1>
+        <span className={`text-pink-400 ${fromCart && "text-sm"}`}>
+          ${price}
+        </span>
       </div>
-      <CartButtons item={item} />
+      <CartButtons item={item} fromCart={fromCart} />
     </div>
   );
 };
