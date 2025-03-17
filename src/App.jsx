@@ -2,11 +2,23 @@ import { useEffect } from "react";
 import { CartItem } from "./components/CartItem";
 import { useCart } from "./context/CartContext";
 import { ShoppingCart } from "./components/ShoppingCart";
+import {
+  getItemFromStorage,
+  getParsedItemFromStorage,
+} from "./utilities/LocalStorageFns";
 
 export default function App() {
-  const { allItems, setItems } = useCart();
+  const { allItems, setItems, setCartItemsFromStorage } = useCart();
+
   useEffect(() => {
     setItems();
+
+    if (
+      getParsedItemFromStorage("cartItems")?.length > 0 &&
+      getItemFromStorage("cartItems") !== null
+    ) {
+      setCartItemsFromStorage();
+    }
   }, []);
 
   useEffect(() => {
