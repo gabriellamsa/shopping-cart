@@ -1,5 +1,6 @@
 import { allProducts } from "../assets/data";
 import { createContext, useContext, useState } from "react";
+import { setItemInStorage } from "../utilities/LocalStorageFns";
 
 export const CartContext = createContext();
 export const CartProvider = ({ children }) => {
@@ -42,9 +43,23 @@ export const CartProvider = ({ children }) => {
     });
   };
 
+  const setLocalStorage = () => {
+    if (allItems.length !== 0) {
+      const inCartItems = allItems.filter((item) => item.inCart);
+      setItemInStorage("cartItems", inCartItems);
+    }
+  };
+
   return (
     <CartContext.Provider
-      value={{ allItems, setItems, addToCart, removeFromCart, updateQuantity }}
+      value={{
+        allItems,
+        setItems,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        setLocalStorage,
+      }}
     >
       {children}
     </CartContext.Provider>
