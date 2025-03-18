@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useCart } from "../context/CartContext";
 import { CartItem } from "./CartItem";
 import { formatCurrency } from "../utilities/FormatCurrency";
+import { CheckoutButton } from "./CheckoutButtons";
 
 export const ShoppingCart = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -57,9 +58,7 @@ export const ShoppingCart = () => {
             <h1 className="text-lg text-gray-600">
               Total: {formatCurrency(totalPrice)}
             </h1>
-            <button className="rounded-md bg-blue-300 px-2 text-white hover:bg-blue-400 transition-colors">
-              Checkout
-            </button>
+            <CheckoutButton cartItems={cartItems} />
           </div>
         </div>
       )}
