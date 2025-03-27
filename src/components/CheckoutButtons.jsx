@@ -7,29 +7,46 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 export const CheckoutButton = ({ cartItems }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [stripe, setStripe] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    let mounted = true;
+
     const initializeStripe = async () => {
       try {
         console.log("Initializing Stripe...");
         const stripeInstance = await stripePromise;
         console.log("Stripe initialized successfully");
-        setStripe(stripeInstance);
+        if (mounted) {
+          setStripe(stripeInstance);
+        }
       } catch (error) {
         console.error("Error initializing Stripe:", error);
+        if (mounted) {
+          setError(error.message);
+        }
       }
     };
+
     initializeStripe();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const handleCheckout = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       console.log("Starting checkout process...");
 
       if (!stripe) {
-        console.error("Stripe not loaded");
-        throw new Error("Stripe not loaded.");
+        console.log("Waiting for Stripe to initialize...");
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        if (!stripe) {
+          throw new Error("Stripe not loaded. Please try again.");
+        }
       }
 
       if (!cartItems || cartItems.length === 0) {
@@ -101,6 +118,7 @@ export const CheckoutButton = ({ cartItems }) => {
       }
     } catch (error) {
       console.error("Detailed error during checkout:", error);
+      setError(error.message);
       alert(
         "An error occurred while processing your payment. Please try again."
       );
@@ -109,11 +127,15 @@ export const CheckoutButton = ({ cartItems }) => {
     }
   };
 
+  if (error) {
+    return <div className="text-red-600 text-sm mb-4">Error: {error}</div>;
+  }
+
   return (
     <button
       className="btn btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
       onClick={handleCheckout}
-      disabled={isLoading || cartItems.length === 0}
+      disabled={isLoading || cartItems.length === 0 || !stripe}
     >
       {isLoading ? (
         <>
