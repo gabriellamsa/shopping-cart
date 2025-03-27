@@ -10,8 +10,14 @@ export const CheckoutButton = ({ cartItems }) => {
 
   useEffect(() => {
     const initializeStripe = async () => {
-      const stripeInstance = await stripePromise;
-      setStripe(stripeInstance);
+      try {
+        console.log("Initializing Stripe...");
+        const stripeInstance = await stripePromise;
+        console.log("Stripe initialized successfully");
+        setStripe(stripeInstance);
+      } catch (error) {
+        console.error("Error initializing Stripe:", error);
+      }
     };
     initializeStripe();
   }, []);
@@ -19,62 +25,82 @@ export const CheckoutButton = ({ cartItems }) => {
   const handleCheckout = async () => {
     try {
       setIsLoading(true);
+      console.log("Starting checkout process...");
 
-      if (!stripe) throw new Error("Stripe not loaded.");
+      if (!stripe) {
+        console.error("Stripe not loaded");
+        throw new Error("Stripe not loaded.");
+      }
+
       if (!cartItems || cartItems.length === 0) {
-        console.error("Empty cart.");
+        console.error("Empty cart");
         return;
       }
 
       if (!import.meta.env.VITE_STRIPE_SECRET_KEY) {
+        console.error("Stripe secret key not found");
         throw new Error("Stripe secret key not found.");
       }
 
-      const lineItems = cartItems.map((item) => ({
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: item.name,
-          },
-          unit_amount: Math.round(item.price * 100),
-        },
-        quantity: item.quantity,
-      }));
+      console.log("Creating line items...");
+      const formData = new URLSearchParams();
+      formData.append("payment_method_types[]", "card");
+      formData.append("mode", "payment");
+      formData.append("success_url", `${window.location.origin}/success`);
+      formData.append("cancel_url", `${window.location.origin}/`);
 
+      cartItems.forEach((item, index) => {
+        formData.append(`line_items[${index}][price_data][currency]`, "usd");
+        formData.append(
+          `line_items[${index}][price_data][product_data][name]`,
+          item.name
+        );
+        formData.append(
+          `line_items[${index}][price_data][unit_amount]`,
+          Math.round(item.price * 100)
+        );
+        formData.append(`line_items[${index}][quantity]`, item.quantity);
+      });
+
+      console.log("Form data:", formData.toString());
+
+      console.log("Creating checkout session...");
       const response = await fetch(
         "https://api.stripe.com/v1/checkout/sessions",
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
             Authorization: `Bearer ${import.meta.env.VITE_STRIPE_SECRET_KEY}`,
           },
-          body: JSON.stringify({
-            payment_method_types: ["card"],
-            mode: "payment",
-            success_url: `${window.location.origin}/success`,
-            cancel_url: `${window.location.origin}/`,
-            line_items: lineItems,
-          }),
+          body: formData,
         }
       );
 
+      const responseData = await response.json();
+      console.log("Response status:", response.status);
+      console.log("Response data:", responseData);
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Error creating session: ${errorData.error?.message}`);
+        console.error("Stripe API error:", responseData);
+        throw new Error(
+          `Error creating session: ${responseData.error?.message}`
+        );
       }
 
-      const { id: sessionId } = await response.json();
+      console.log("Checkout session created:", responseData);
 
+      console.log("Redirecting to Stripe checkout...");
       const { error } = await stripe.redirectToCheckout({
-        sessionId,
+        sessionId: responseData.id,
       });
 
       if (error) {
+        console.error("Stripe redirect error:", error);
         throw error;
       }
     } catch (error) {
-      console.error("Error during checkout: ", error);
+      console.error("Detailed error during checkout:", error);
       alert(
         "An error occurred while processing your payment. Please try again."
       );
