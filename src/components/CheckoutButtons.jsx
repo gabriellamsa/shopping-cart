@@ -12,6 +12,11 @@ export const CheckoutButton = ({ cartItems }) => {
 
     const initializeStripe = async () => {
       try {
+        console.log("Environment variables:", {
+          publicKey: import.meta.env.VITE_STRIPE_PUBLIC_KEY,
+          secretKey: import.meta.env.VITE_STRIPE_SECRET_KEY,
+        });
+
         if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
           console.error("Stripe public key not found");
           return;
