@@ -2,8 +2,6 @@ import { loadStripe } from "@stripe/stripe-js";
 import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
-
 export const CheckoutButton = ({ cartItems }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [stripe, setStripe] = useState(null);
@@ -14,8 +12,21 @@ export const CheckoutButton = ({ cartItems }) => {
 
     const initializeStripe = async () => {
       try {
+        if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
+          console.error("Stripe public key not found");
+          return;
+        }
+
         console.log("Initializing Stripe...");
-        const stripeInstance = await stripePromise;
+        const stripeInstance = await loadStripe(
+          import.meta.env.VITE_STRIPE_PUBLIC_KEY
+        );
+
+        if (!stripeInstance) {
+          console.error("Failed to initialize Stripe");
+          return;
+        }
+
         console.log("Stripe initialized successfully");
         if (mounted) {
           setStripe(stripeInstance);
@@ -23,7 +34,9 @@ export const CheckoutButton = ({ cartItems }) => {
       } catch (error) {
         console.error("Error initializing Stripe:", error);
         if (mounted) {
-          setError(error.message);
+          setError(
+            "Failed to initialize payment system. Please try again later."
+          );
         }
       }
     };
@@ -45,7 +58,7 @@ export const CheckoutButton = ({ cartItems }) => {
         console.log("Waiting for Stripe to initialize...");
         await new Promise((resolve) => setTimeout(resolve, 1000));
         if (!stripe) {
-          throw new Error("Stripe not loaded. Please try again.");
+          throw new Error("Payment system not ready. Please try again.");
         }
       }
 
@@ -56,7 +69,7 @@ export const CheckoutButton = ({ cartItems }) => {
 
       if (!import.meta.env.VITE_STRIPE_SECRET_KEY) {
         console.error("Stripe secret key not found");
-        throw new Error("Stripe secret key not found.");
+        throw new Error("Payment system configuration error.");
       }
 
       console.log("Creating line items...");
@@ -127,24 +140,23 @@ export const CheckoutButton = ({ cartItems }) => {
     }
   };
 
-  if (error) {
-    return <div className="text-red-600 text-sm mb-4">Error: {error}</div>;
-  }
-
   return (
-    <button
-      className="btn btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-      onClick={handleCheckout}
-      disabled={isLoading || cartItems.length === 0 || !stripe}
-    >
-      {isLoading ? (
-        <>
-          <Loader2 className="w-4 h-4 animate-spin" />
-          <span>Processing...</span>
-        </>
-      ) : (
-        <span>Checkout</span>
-      )}
-    </button>
+    <div className="space-y-4">
+      {error && <div className="text-red-600 text-sm">{error}</div>}
+      <button
+        className="btn btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+        onClick={handleCheckout}
+        disabled={isLoading || cartItems.length === 0}
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Processing...</span>
+          </>
+        ) : (
+          <span>Checkout</span>
+        )}
+      </button>
+    </div>
   );
 };
