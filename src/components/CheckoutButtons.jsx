@@ -1,16 +1,24 @@
 import { loadStripe } from "@stripe/stripe-js";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 export const CheckoutButton = ({ cartItems }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [stripe, setStripe] = useState(null);
+
+  useEffect(() => {
+    const initializeStripe = async () => {
+      const stripeInstance = await stripePromise;
+      setStripe(stripeInstance);
+    };
+    initializeStripe();
+  }, []);
 
   const handleCheckout = async () => {
     try {
       setIsLoading(true);
-      const stripe = await stripePromise;
 
       if (!stripe) throw new Error("Stripe not loaded.");
       if (!cartItems || cartItems.length === 0) {
@@ -22,51 +30,32 @@ export const CheckoutButton = ({ cartItems }) => {
         throw new Error("Stripe secret key not found.");
       }
 
-      const lineItems = cartItems.map((item) => {
-        return {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: item.name,
-            },
-            unit_amount: Math.round(item.price * 100),
+      const lineItems = cartItems.map((item) => ({
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: item.name,
           },
-          quantity: item.quantity,
-        };
-      });
-
-      const formData = new URLSearchParams();
-      formData.append("payment_method_types[]", "card");
-      formData.append("mode", "payment");
-      formData.append("success_url", `${window.location.origin}/success`);
-      formData.append("cancel_url", `${window.location.origin}/`);
-      formData.append("locale", "en");
-
-      lineItems.forEach((item, index) => {
-        formData.append(
-          `line_items[${index}][price_data][currency]`,
-          item.price_data.currency
-        );
-        formData.append(
-          `line_items[${index}][price_data][product_data][name]`,
-          item.price_data.product_data.name
-        );
-        formData.append(
-          `line_items[${index}][price_data][unit_amount]`,
-          item.price_data.unit_amount
-        );
-        formData.append(`line_items[${index}][quantity]`, item.quantity);
-      });
+          unit_amount: Math.round(item.price * 100),
+        },
+        quantity: item.quantity,
+      }));
 
       const response = await fetch(
         "https://api.stripe.com/v1/checkout/sessions",
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
+            "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_STRIPE_SECRET_KEY}`,
           },
-          body: formData,
+          body: JSON.stringify({
+            payment_method_types: ["card"],
+            mode: "payment",
+            success_url: `${window.location.origin}/success`,
+            cancel_url: `${window.location.origin}/`,
+            line_items: lineItems,
+          }),
         }
       );
 
@@ -79,7 +68,6 @@ export const CheckoutButton = ({ cartItems }) => {
 
       const { error } = await stripe.redirectToCheckout({
         sessionId,
-        mode: "payment",
       });
 
       if (error) {
