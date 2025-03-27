@@ -23,44 +23,70 @@ export const ShoppingCart = () => {
   }, [allItems]);
 
   setLocalStorage();
+
   return (
     <>
       {cartItems.length !== 0 && (
-        <div
-          className={`w-[300px] h-screen bg-gray-200 fixed top-0 z-30 border-l-4 rounded-tl-lg ${
-            isOpen ? "right-0" : "-right-[300px]"
-          }`}
-        >
-          <div className="w-full h-16 bg-white flex justify-center items-center border-b relative">
-            <h1 className="text-lg text-gray-600">Shopping Cart</h1>
-            <button
-              className="w-9 h-9 bg-yellow-400 absolute right-3 grid place-items-center border-2 rounded-full hover:bg-yellow-500 transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              <XIcon className="text-white" />
-            </button>
-          </div>
+        <>
+          {/* Cart button */}
           <button
-            className="w-9 h-9 bg-yellow-400 absolute -left-14 top-3 z-20 grid- place-items-center border-2 rounded-full"
+            className="fixed right-4 top-4 z-40 bg-white p-3 rounded-full shadow-soft hover:shadow-lg transition-all duration-300"
             onClick={() => setIsOpen(true)}
           >
-            <ShoppingCartIcon className="text-xs text-white" />
-            <span className="w-6 h-6 bg-pink-400 absolute -bottom-4 -left-2 grid place-items-center border border-gray-300 rounded-full text-sm text-white">
+            <ShoppingCartIcon className="w-6 h-6 text-gray-700" />
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary-600 text-white text-xs rounded-full flex items-center justify-center">
               {cartItems.length > 9 ? "9+" : cartItems.length}
             </span>
           </button>
-          <div className="h-screen flex flex-col gap-y-3 overflow-y-scroll px-5 pb-24 pt-20">
-            {cartItems?.map((item) => {
-              return <CartItem key={item.id} item={item} fromCart={true} />;
-            })}
+
+          {/* Overlay */}
+          {isOpen && (
+            <div
+              className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
+              onClick={() => setIsOpen(false)}
+            />
+          )}
+
+          {/* Cart panel */}
+          <div
+            className={`fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out ${
+              isOpen ? "translate-x-0" : "translate-x-full"
+            }`}
+          >
+            <div className="h-full flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Shopping Cart
+                </h2>
+                <button
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <XIcon className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              {/* Items list */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {cartItems?.map((item) => (
+                  <CartItem key={item.id} item={item} fromCart={true} />
+                ))}
+              </div>
+
+              {/* Footer with total and checkout */}
+              <div className="border-t p-4 space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Total</span>
+                  <span className="text-xl font-semibold text-gray-900">
+                    {formatCurrency(totalPrice)}
+                  </span>
+                </div>
+                <CheckoutButton cartItems={cartItems} />
+              </div>
+            </div>
           </div>
-          <div className="w-full h-20 bg-white absolute bottom-0 left-0 z-10 grid place-items-center border rounded-lg">
-            <h1 className="text-lg text-gray-600">
-              Total: {formatCurrency(totalPrice)}
-            </h1>
-            <CheckoutButton cartItems={cartItems} />
-          </div>
-        </div>
+        </>
       )}
     </>
   );

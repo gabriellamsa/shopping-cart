@@ -1,10 +1,15 @@
 import { loadStripe } from "@stripe/stripe-js";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 export const CheckoutButton = ({ cartItems }) => {
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleCheckout = async () => {
     try {
+      setIsLoading(true);
       const stripe = await stripePromise;
 
       if (!stripe) throw new Error("Stripe not loaded.");
@@ -32,8 +37,6 @@ export const CheckoutButton = ({ cartItems }) => {
         };
       });
 
-      console.log("Items formatted for Stripe:", lineItems);
-
       const formData = new URLSearchParams();
       formData.append("payment_method_types[]", "card");
       formData.append("mode", "payment");
@@ -57,8 +60,6 @@ export const CheckoutButton = ({ cartItems }) => {
         formData.append(`line_items[${index}][quantity]`, item.quantity);
       });
 
-      console.log("FormData created:", Object.fromEntries(formData));
-
       const response = await fetch(
         "https://api.stripe.com/v1/checkout/sessions",
         {
@@ -73,29 +74,40 @@ export const CheckoutButton = ({ cartItems }) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("Error creating session:", errorData);
         throw new Error(`Error creating session: ${errorData.error?.message}`);
       }
 
       const { id: sessionId } = await response.json();
-      console.log("Session created successfully:", sessionId);
 
       const { error } = await stripe.redirectToCheckout({ sessionId });
 
       if (error) {
-        console.error("Error redirecting to checkout:", error);
+        throw error;
       }
     } catch (error) {
       console.error("Error during checkout: ", error);
+      alert(
+        "An error occurred while processing your payment. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <button
-      className="rounded-md bg-pink-400 px-4 py-2 text-white hover:bg-pink-500 transition-colors shadow-md hover:shadow-lg"
+      className="btn btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
       onClick={handleCheckout}
+      disabled={isLoading || cartItems.length === 0}
     >
-      Checkout
+      {isLoading ? (
+        <>
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span>Processing...</span>
+        </>
+      ) : (
+        <span>Checkout</span>
+      )}
     </button>
   );
 };

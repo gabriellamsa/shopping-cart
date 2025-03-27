@@ -4,53 +4,49 @@ export const CartButtons = ({ item, fromCart }) => {
   const { addToCart, removeFromCart, updateQuantity } = useCart();
 
   return (
-    <div className={`w-max absolute right-5 top-5 ${fromCart && "scale-90"}`}>
-      <div className="space-x-3">
-        {!item.inCart ? (
+    <div className={`${fromCart ? "scale-90" : ""}`}>
+      {!item.inCart ? (
+        <button
+          type="button"
+          className="btn btn-primary text-sm"
+          onClick={() => addToCart(item)}
+        >
+          Add to cart
+        </button>
+      ) : (
+        <div className="flex items-center gap-2">
           <button
-            type="button"
-            className="bg-zinc-400 border rounded-md px-2 py-1 text-sm text-white hover:bg-zinc-500 transition-colors"
-            onClick={() => addToCart(item)}
+            className="btn btn-secondary w-8 h-8 p-0 flex items-center justify-center text-lg"
+            onClick={() => {
+              if (item.quantity === 1) {
+                removeFromCart(item);
+              } else {
+                updateQuantity(item, -1);
+              }
+            }}
           >
-            + Add to cart
+            -
           </button>
-        ) : (
-          <div>
-            <div className="flex">
-              <button
-                className="border rounded-lg px-3"
-                onClick={() => {
-                  if (item.quantity === 1) {
-                    removeFromCart(item);
-                  } else {
-                    updateQuantity(item, -1);
-                  }
-                }}
-              >
-                -
-              </button>
-              <p className="flex items-center gap-x-1 mx-1">
-                <span className="min-w-7 bg-green-100 grid place-items-center border rounded-full">
-                  {item.quantity}
-                </span>
-                <span className="text-sm">in cart</span>
-              </p>
-              <button
-                className="border rounded-lg px-3"
-                onClick={() => updateQuantity(item, 1)}
-              >
-                +
-              </button>
-            </div>
-            <button
-              className="bg-pink-300 mx-auto mt-2 block rounded-md px-2 py-1 text-xs text-white hover:bg-pink-400"
-              onClick={() => removeFromCart(item)}
-            >
-              Remove
-            </button>
-          </div>
-        )}
-      </div>
+
+          <span className="min-w-[2rem] text-center text-sm font-medium text-gray-700">
+            {item.quantity}
+          </span>
+
+          <button
+            className="btn btn-secondary w-8 h-8 p-0 flex items-center justify-center text-lg"
+            onClick={() => updateQuantity(item, 1)}
+          >
+            +
+          </button>
+
+          <button
+            className="btn btn-secondary text-sm text-red-600 hover:text-red-700 hover:bg-red-50"
+            onClick={() => removeFromCart(item)}
+          >
+            Remove
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -29,25 +29,48 @@ export default function App() {
 
   return (
     <Router>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <div className="grid place-items-center py-16">
-              <h1 className="lg:text-5xl md:text-4xl sm:text-3xl text-2xl italic text-gray-500 mb-20 px-6 text-center leading-snug">
-                Trend Alert: Must-Have Outfits of the Season
-              </h1>
-              <ShoppingCart />
-              <div className="grid xl:grid-cols-3 lg:grid-cols-2 sm:grid-cols-1 gap-8 xl:px-8 px-6">
-                {allItems?.map((item) => (
-                  <CartItem key={item.id} item={item} />
-                ))}
-              </div>
-            </div>
-          }
-        />
-        <Route path="/success" element={<Success />} />
-      </Routes>
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white shadow-sm">
+          <div className="container py-6">
+            <h1 className="text-3xl font-bold text-gray-900 text-center">
+              Trend Alert
+            </h1>
+            <p className="text-center text-gray-600 mt-2">
+              Must-Have Outfits of the Season
+            </p>
+          </div>
+        </header>
+
+        <main className="container py-8">
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <div className="space-y-8">
+                  <div className="flex justify-end">
+                    <ShoppingCart />
+                  </div>
+
+                  <div className="grid xl:grid-cols-3 lg:grid-cols-2 sm:grid-cols-1 gap-6">
+                    {allItems?.map((item) => (
+                      <CartItem key={item.id} item={item} />
+                    ))}
+                  </div>
+                </div>
+              }
+            />
+            <Route path="/success" element={<Success />} />
+          </Routes>
+        </main>
+
+        <footer className="bg-white border-t mt-auto">
+          <div className="container py-6">
+            <p className="text-center text-gray-600 text-sm">
+              © {new Date().getFullYear()} Trend Alert. All rights reserved.
+            </p>
+          </div>
+        </footer>
+      </div>
     </Router>
   );
 }
