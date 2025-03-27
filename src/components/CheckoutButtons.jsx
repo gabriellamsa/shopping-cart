@@ -22,8 +22,6 @@ export const CheckoutButton = ({ cartItems }) => {
         throw new Error("Stripe secret key not found.");
       }
 
-      const originUrl = window.location.origin || "http://localhost:5173";
-
       const lineItems = cartItems.map((item) => {
         return {
           price_data: {
@@ -40,8 +38,8 @@ export const CheckoutButton = ({ cartItems }) => {
       const formData = new URLSearchParams();
       formData.append("payment_method_types[]", "card");
       formData.append("mode", "payment");
-      formData.append("success_url", `${originUrl}/success`);
-      formData.append("cancel_url", `${originUrl}/cancel`);
+      formData.append("success_url", `${window.location.origin}/success`);
+      formData.append("cancel_url", `${window.location.origin}/`);
       formData.append("locale", "en");
 
       lineItems.forEach((item, index) => {
@@ -79,7 +77,10 @@ export const CheckoutButton = ({ cartItems }) => {
 
       const { id: sessionId } = await response.json();
 
-      const { error } = await stripe.redirectToCheckout({ sessionId });
+      const { error } = await stripe.redirectToCheckout({
+        sessionId,
+        mode: "payment",
+      });
 
       if (error) {
         throw error;
